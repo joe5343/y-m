@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMI and BMR Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to right, #a2c2e9, #f6f7f8);
+            color: #333;
+        }
+        .container {
+            max-width: 500px;
+            margin: 40px auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            color: #007BFF;
+            font-size: 2.5em;
+            margin: 0;
+        }
+        .header h2 {
+            color: #6c757d;
+            font-size: 1.2em;
+            margin: 0;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        input[type="number"], select {
+            width: calc(100% - 22px);
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .results p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        .error {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>BMI and BMR Calculator</h1>
+            <h2>by Y&M</h2>
+        </div>
+
+        <form id="calculator-form">
+            <label for="weight">Weight (kg):</label>
+            <input type="number" id="weight" placeholder="Enter your weight" required min="2" max="300">
+
+            <label for="height">Height (m):</label>
+            <input type="number" id="height" placeholder="Enter your height" step="0.01" required min="0.5" max="3">
+
+            <label for="age">Age (years):</label>
+            <input type="number" id="age" placeholder="Enter your age" required min="0" max="130">
+
+            <label for="gender">Gender:</label>
+            <select id="gender" required>
+                <option value="" disabled selected>Select your gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+
+            <label for="activity">Activity Level:</label>
+            <select id="activity" required>
+                <option value="" disabled selected>Select your activity level</option>
+                <option value="sedentary">Sedentary</option>
+                <option value="lightly active">Lightly active</option>
+                <option value="moderately active">Moderately active</option>
+                <option value="very active">Very active</option>
+                <option value="extra active">Extra active</option>
+            </select>
+
+            <button type="button" onclick="calculate()">Calculate</button>
+        </form>
+
+        <div class="results" id="results"></div>
+        <div class="error" id="error-message"></div>
+    </div>
+
+    <script>
+        function calculate() {
+            const weight = parseFloat(document.getElementById('weight').value);
+            const height = parseFloat(document.getElementById('height').value);
+            const age = parseInt(document.getElementById('age').value);
+            const gender = document.getElementById('gender').value;
+            const activity = document.getElementById('activity').value;
+
+            document.getElementById('error-message').innerHTML = '';
+
+            if (isNaN(weight) || weight <= 0 || weight > 300 ||
+                isNaN(height) || height <= 0 || height > 3 ||
+                isNaN(age) || age <= 0 || age > 130 ||
+                !gender || !activity) {
+                document.getElementById('error-message').innerHTML = "Please enter valid inputs in all fields.";
+                return;
+            }
+
+            const bmi = weight / (height * height);
+            let bmiCategory = '';
+            if (bmi < 18.5) {
+                bmiCategory = 'Underweight';
+            } else if (bmi < 24.9) {
+                bmiCategory = 'Normal weight';
+            } else if (bmi < 29.9) {
+                bmiCategory = 'Overweight';
+            } else {
+                bmiCategory = 'Obesity';
+            }
+
+            let bmr;
+            if (gender === 'male') {
+                bmr = 88.362 + (13.397 * weight) + (4.799 * height * 100) + (5.677 * age);
+            } else {
+                bmr = 447.593 + (9.247 * weight) + (3.098 * height * 100) + (4.330 * age);
+            }
+
+            const activityFactors = {
+                'sedentary': 1.2,
+                'lightly active': 1.375,
+                'moderately active': 1.55,
+                'very active': 1.725,
+                'extra active': 1.9
+            };
+            const dailyCalories = bmr * activityFactors[activity];
+
+            let additionalMessage = '';
+            if (bmiCategory === 'Overweight' || bmiCategory === 'Obesity') {
+                additionalMessage = `<p>Since your BMI is classified as ${bmiCategory}, consider reducing your calorie intake to achieve a healthier weight. Aiming for a daily intake that's around 10-20% less than your current maintenance calories can help with weight loss. However, it's always a good idea to consult with a healthcare provider or nutritionist for personalized advice.</p>`;
+            } else if (bmiCategory === 'Underweight') {
+                additionalMessage = `<p>Since your BMI is classified as ${bmiCategory}, consider increasing your calorie intake to achieve a healthier weight. Aiming for a daily intake that's around 10-20% more than your current maintenance calories can help with weight gain. However, it's always a good idea to consult with a healthcare provider or nutritionist for personalized advice.</p>`;
+            }
+
+            const results = `
+                <p>Your BMI is: ${bmi.toFixed(2)}</p>
+                <p>You are classified as: ${bmiCategory}</p>
+                <p>Your BMR is: ${bmr.toFixed(2)} calories/day</p>
+                <p>To maintain your current weight, you need approximately ${dailyCalories.toFixed(2)} calories/day.</p>
+                ${additionalMessage}
+            `;
+            document.getElementById('results').innerHTML = results;
+        }
+    </script>
+
+</body>
+</html>
